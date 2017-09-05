@@ -19,6 +19,8 @@ pipeline
     always
     {
       sendNotifications(currentBuild.result,currentBuild.changeSets)
+
+      junit 'target/**/*Test.xml'
     }
   }
 }

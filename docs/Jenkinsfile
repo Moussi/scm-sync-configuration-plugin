@@ -47,6 +47,8 @@ pipeline
       // Report Status
       sendNotifications(currentBuild.result,currentBuild.changeSets)
       gitTagCleanup "${BUILD_NUMBER}"
+
+      junit 'target/**/*Test.xml'
     }
     success
     {
