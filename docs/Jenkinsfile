@@ -49,7 +49,7 @@ pipeline
     always
     {
       // Report Status
-      sendNotifications(currentBuild.currentResult)
+      slackNotify(currentBuild.currentResult)
       gitTagCleanup "${BUILD_NUMBER}"
 
       junit 'target/**/*Test.xml'
