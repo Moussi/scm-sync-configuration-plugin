@@ -1,4 +1,7 @@
 Jenkins SCM Sync Configuration Plugin
+
+This repository is a fork of the mainline plugin, which apperas to be unmaintained!
+
 =====================
 
 Read more: [https://wiki.jenkins-ci.org/display/JENKINS/SCM+Sync+configuration+plugin](https://wiki.jenkins-ci.org/display/JENKINS/SCM+Sync+configuration+plugin)
