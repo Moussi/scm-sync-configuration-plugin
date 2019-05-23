@@ -40,7 +40,7 @@
 			<input type="hidden" name="currentURL" value="${url.toString()}" />
 		</form>
 	</div>
-    
+
 </j:if>
 
 <j:if test="${it.getScmSyncConfigPlugin().displayStatus}">
@@ -52,7 +52,7 @@
 	<j:set var="fail" value="${it.getScmSyncConfigPlugin().getScmSyncConfigurationStatusManager().getLastFail()}"/>
 	<j:if test="${fail != null}">
 	    <j:set var="icon" value="error" />
-	    <j:set var="msg" value="&lt;br/&gt;${fail}&lt;br/&gt;To remove this message, please &lt;a href='#' onclick='javascript:removeLog();'&gt;click here&lt;/a&gt;" />
+	    <j:set var="msg" value="${fail}." />
 	</j:if>
 
     <st:bind var="scmSyncConfigPageDecorator" value="${it}"/>
@@ -72,6 +72,9 @@
         <tr><td id="footer">
             <span style="color:gray">SCM Sync status : <img src="${imagesURL}/16x16/${icon}.png" alt="" height="16" width="16"/>
             ${msg}
+            <j:if test="${fail != null}">
+               To remove this message, &lt;a href='#' onclick='javascript:removeLog();'&gt;click here&lt;/a&gt;.
+            </j:if>
             </span>
         </td></tr>
     </table>

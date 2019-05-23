@@ -38,7 +38,7 @@ public class ScmSyncConfigurationStatusManager {
     }
 
     public void signalFailed(String description) {
-        appendFile(fail, new Date().toString() + " : " + description + "<br/>");
+        appendFile(fail, new Date().toString() + " : " + description);
     }
 
     private static String readFile(File f) {
