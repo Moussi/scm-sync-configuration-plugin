@@ -9,15 +9,28 @@ public class ScmContext {
 	private String scmRepositoryUrl;
 	private SCM scm;
     private String commitMessagePattern;
+	private String scmGitBranch;
 
     public ScmContext(SCM _scm, String _scmRepositoryUrl){
         this(_scm, _scmRepositoryUrl, "[message]");
     }
 
+	public ScmContext(SCM _scm, String _scmRepositoryUrl, String _commitMessagePattern, String _scmGitBranch){
+		this.scm = _scm;
+		this.scmRepositoryUrl = _scmRepositoryUrl;
+		this.commitMessagePattern = _commitMessagePattern;
+		this.scmGitBranch = _scmGitBranch;
+	}
+
 	public ScmContext(SCM _scm, String _scmRepositoryUrl, String _commitMessagePattern){
 		this.scm = _scm;
 		this.scmRepositoryUrl = _scmRepositoryUrl;
         this.commitMessagePattern = _commitMessagePattern;
+		new ScmContext(_scm, _scmRepositoryUrl, _commitMessagePattern, null);
+	}
+
+	public String getScmGitBranch() {
+		return scmGitBranch;
 	}
 
 	public String getScmRepositoryUrl() {

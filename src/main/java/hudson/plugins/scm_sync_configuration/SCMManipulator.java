@@ -14,6 +14,7 @@ import org.apache.maven.scm.command.update.UpdateScmResult;
 import org.apache.maven.scm.manager.NoSuchScmProviderException;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.repository.ScmRepository;
+import org.apache.maven.scm.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +37,7 @@ public class SCMManipulator {
     private final ScmManager scmManager;
     private ScmRepository scmRepository = null;
     private String scmSpecificFilename = null;
+    private String scmGitBranch;
 
     public SCMManipulator(ScmManager _scmManager) {
         this.scmManager = _scmManager;
@@ -66,7 +68,7 @@ public class SCMManipulator {
                 return false;
             }
         }
-
+        scmGitBranch = scmContext.getScmGitBranch();
         return expectScmRepositoryInitiated();
     }
 
@@ -91,7 +93,13 @@ public class SCMManipulator {
         // Checkouting sources
         LOGGER.fine("Checking out SCM files into ["+checkoutDirectory.getAbsolutePath()+"] ...");
         try {
-            CheckOutScmResult result = scmManager.checkOut(this.scmRepository, new ScmFileSet(checkoutDirectory));
+            ScmBranch scmBranch = null;
+            if (scmGitBranch != null && scmGitBranch.length() > 0){
+                scmBranch = new ScmBranch(scmGitBranch);
+            }
+            CheckOutScmResult result = scmManager.checkOut(this.scmRepository, new ScmFileSet(checkoutDirectory),scmBranch);
+
+
             if(!result.isSuccess()){
                 LOGGER.severe("[checkout] Error during checkout : "+result.getProviderMessage()+" || "+result.getCommandOutput());
                 return checkoutOk;

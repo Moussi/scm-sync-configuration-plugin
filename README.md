@@ -15,3 +15,6 @@ mvn install
 ```
 
 This will build the image and run the tests. The configuration is found at `./target/scm-sync-configuration.hpi`
+
+Thanks to hybris/scm-sync-configuration-plugin for his PR for adding git branch on scm sync plugin 
+https://github.com/jenkinsci/scm-sync-configuration-plugin/pull/23/commits

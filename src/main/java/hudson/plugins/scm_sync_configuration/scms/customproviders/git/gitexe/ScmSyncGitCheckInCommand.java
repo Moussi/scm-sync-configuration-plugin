@@ -87,6 +87,13 @@ public class ScmSyncGitCheckInCommand extends GitCheckInCommand {
             }
             if (repo.isPushChanges()) {
                 Commandline cl = createSpecificPushCommandLine(getLogger(), repository, fileSet, version);
+
+                StringBuffer clOutput = new StringBuffer();
+                String[] clTab = cl.getCommandline();
+                for (int i = 0; i < clTab.length; i++) {
+                    clOutput.append(clTab[i] + ", ");
+                }
+
                 exitCode = GitCommandLineUtils.execute(cl, stdout, stderr, getLogger());
                 if (exitCode != 0) {
                     String msg = stderr.getOutput();

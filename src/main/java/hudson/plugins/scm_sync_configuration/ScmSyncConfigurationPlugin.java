@@ -29,6 +29,7 @@ import hudson.security.Permission;
 import hudson.util.FormValidation;
 import hudson.util.PluginServletFilter;
 import net.sf.json.JSONObject;
+import net.sf.json.JSONException;
 
 import org.acegisecurity.AccessDeniedException;
 import org.apache.maven.scm.CommandParameters;
@@ -106,6 +107,7 @@ public class ScmSyncConfigurationPlugin extends Plugin{
     private transient ThreadLocal<ScmTransaction> transaction = new ThreadLocal<ScmTransaction>();
 
     private String scmRepositoryUrl;
+    private String scmGitBranch;
     private SCM scm;
     private boolean noUserCommitMessage;
     private boolean displayStatus = true;
@@ -114,6 +116,8 @@ public class ScmSyncConfigurationPlugin extends Plugin{
     private String commitMessagePattern = "[message]";
     private List<File> filesModifiedByLastReload;
     private List<String> manualSynchronizationIncludes;
+
+    private static final String SCM_SYNC_GIT_PREFX="scm:git:";
 
     public ScmSyncConfigurationPlugin(){
         // By default, transactions should be asynchronous
@@ -159,6 +163,7 @@ public class ScmSyncConfigurationPlugin extends Plugin{
 
     public void loadData(ScmSyncConfigurationPOJO pojo){
         this.scmRepositoryUrl = pojo.getScmRepositoryUrl();
+        this.scmGitBranch = pojo.getScmGitBranch();
         this.scm = pojo.getScm();
         this.noUserCommitMessage = pojo.isNoUserCommitMessage();
         this.displayStatus = pojo.isDisplayStatus();
@@ -201,6 +206,7 @@ public class ScmSyncConfigurationPlugin extends Plugin{
         this.noUserCommitMessage = formData.getBoolean("noUserCommitMessage");
         this.displayStatus = formData.getBoolean("displayStatus");
         this.commitMessagePattern = req.getParameter("commitMessagePattern");
+        String oldGitBranch = this.scmGitBranch;
 
         String oldScmRepositoryUrl = this.scmRepositoryUrl;
         String scmType = req.getParameter("scm");
@@ -209,9 +215,21 @@ public class ScmSyncConfigurationPlugin extends Plugin{
             String newScmRepositoryUrl = this.scm.createScmUrlFromRequest(req);
 
             this.scmRepositoryUrl = newScmRepositoryUrl;
+            String newScmGitBranch = null;
+            if ("hudson.plugins.scm_sync_configuration.scms.ScmSyncGitSCM".equals(scmType)){
+                newScmGitBranch = formData.getJSONObject("scm").getString("scmGitBranch");
+            }
+
+            if (oldGitBranch == null) {
+                oldGitBranch = "master";
+            }
+            if (newScmGitBranch == null){
+                newScmGitBranch = "master";
+            }
+            this.scmGitBranch = newScmGitBranch;
 
             // If something changed, let's reinitialize repository in working directory !
-            repoInitializationRequired = newScmRepositoryUrl != null && !newScmRepositoryUrl.equals(oldScmRepositoryUrl);
+            repoInitializationRequired = (newScmRepositoryUrl != null && !newScmRepositoryUrl.equals(oldScmRepositoryUrl)) || !newScmGitBranch.equals(oldGitBranch);
             configsResynchronizationRequired = repoInitializationRequired;
             repoCleaningRequired = newScmRepositoryUrl==null && oldScmRepositoryUrl!=null;
         }
@@ -277,6 +295,13 @@ public class ScmSyncConfigurationPlugin extends Plugin{
 
     public void doReloadAllFilesFromScm(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
         try {
+            String branchToReload = req.getParameter("scmBranchReload");
+            String urlToReload = req.getParameter("urlRepoReload");
+            LOGGER.info("Switching to URL:" + urlToReload + " branch:"+ branchToReload);
+            scmGitBranch = branchToReload;
+            scmRepositoryUrl = SCM_SYNC_GIT_PREFX + urlToReload;
+            business.removeSourceJobsDuringReload();
+            init();
             filesModifiedByLastReload = business.reloadAllFilesFromScm();
             req.getView(this, "/hudson/plugins/scm_sync_configuration/reload.jelly").forward(req, res);
         }
@@ -362,7 +387,7 @@ public class ScmSyncConfigurationPlugin extends Plugin{
     }
 
     public ScmContext createScmContext(){
-        return new ScmContext(this.scm, this.scmRepositoryUrl, this.commitMessagePattern);
+        return new ScmContext(this.scm, this.scmRepositoryUrl, this.commitMessagePattern, this.scmGitBranch);
     }
 
     public boolean shouldDecorationOccursOnURL(String url){
@@ -423,6 +448,8 @@ public class ScmSyncConfigurationPlugin extends Plugin{
             return null;
         }
     }
+
+    public String getScmGitBranch() { return scmGitBranch; }
 
     public List<File> getFilesModifiedByLastReload() {
         return filesModifiedByLastReload;
